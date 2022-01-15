@@ -29,10 +29,6 @@ Straightforward:
 - tar xzf vdr-remoteosd-<VERSION>.tgz
 - ln -sf remoteosd-<VERSION> remoteosd
 
-If you didn't do that already (otherwise svdrpservice.h is missing):
-- tar xzf vdr-svdrpservice-<VERSION>.tgz
-- ln -sf svdrpservice-<VERSION> svdrpservice
-
 If you want to replace the VDR mainmenus "Schedule" or "Timers" by
 the respective remote menus, you must apply the MainMenuHooks patch
 to VDR before compiling remoteosd. The MainMenuHooks patch is included
@@ -43,7 +39,17 @@ Now compile and install remoteosd (and svdrpservice) as usual and add
 both plugins to the script starting your VDR (e.g. runvdr). No options
 required, so simply append:
 
-  -Premoteosd -Psvdrpservice
+  -P remoteosd -P svdrpservice
+
+Since svdrpservice-0.0.4 you can already specify the server IP and port
+on the commandline. It will then serve as the default for all plugins
+using svdrpservice:
+
+  -P remoteosd -P 'svdrpservice 192.0.2.1:6419'
+
+Finally check the file svdrphosts.conf on the remote VDR: The IP of the VDR
+running remoteosd must be listed or otherwise the connection will be
+refused.
 
 Installation on server VDR:
 ---------------------------
@@ -83,8 +89,9 @@ IP address of SVDRP server. Leave empty or enter 0.0.0.0 if you want to
 use the default IP configured in the svdrpservice plugin.
 
 - Server port
-SVDRP port on server (usually 2001). Enter 0 if you want to use the
-default port from svdrpservice.
+SVDRP port on server. Since VDR 1.7.15 the default port is 6419, before
+it was 2001. The special value 0 uses the default port configured in
+svdrpservice.
 
 - Tune server channel
 Tries to tune the server to the same channel the client is currently

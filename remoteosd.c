@@ -9,13 +9,14 @@
 #include <vdr/plugin.h>
 #include <vdr/skins.h>
 #include <vdr/themes.h>
+#include <vdr/i18n.h>
 #include <strings.h>
 #include <stdlib.h>
-#include "i18n.h"
+#include "remoteosd.h"
 #include "menu.h"
 #include "setup.h"
 
-static const char *VERSION        = "0.1.1";
+static const char *VERSION        = "1.0.0";
 static const char *DESCRIPTION    = trNOOP("Show menu of a remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote menu");
 
@@ -75,9 +76,6 @@ bool cPluginRemoteOsd::Initialize(void)
 bool cPluginRemoteOsd::Start(void)
 {
   // Start any background activities the plugin shall perform.
-#if VDRVERSNUM < 10507
-  RegisterI18n(Phrases);
-#endif
   return true;
 }
 
@@ -132,6 +130,23 @@ bool cPluginRemoteOsd::SetupParse(const char *Name, const char *Value)
 bool cPluginRemoteOsd::Service(const char *Id, void *Data)
 {
   // Handle custom service requests from other plugins
+
+  if (strcmp(Id, "RemoteOsd::Menu-v1.0") == 0) {
+     if (Data) {
+        RemoteOsd_Menu_v1_0 *data = (RemoteOsd_Menu_v1_0 *) Data;
+        cRemoteOsdMenu *remoteMenu = new cRemoteOsdMenu(data->serverIp);
+        if (!remoteMenu->Open(data->serverIp, data->serverPort, data->key ? data->key : "MENU")) {
+           DELETENULL(remoteMenu);
+           Skins.Message(mtError, tr("Remote menu not available. Connection failed."));
+        }
+        data->menu = remoteMenu;
+     }
+     return true;
+  }
+
+  /*
+   * MainMenuHooks
+   */
   cRemoteOsdMenu **menu = (cRemoteOsdMenu**) Data;
   if (RemoteOsdSetup.replaceSchedule && strcmp(Id, "MainMenuHooksPatch-v1.0::osSchedule") == 0) {
 	  if (menu) {

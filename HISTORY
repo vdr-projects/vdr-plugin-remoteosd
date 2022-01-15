@@ -1,11 +1,26 @@
 VDR Plugin 'remoteosd' Revision History
 ---------------------------------------
 
+2013-06-07: Version 1.0.0
+
+- Added service call to open remote menu
+- Updated Makefile for VDR 1.7.36 and dropped compatibility with older VDR
+  versions
+- Added SetMenuCategory for VDR 1.7.28+
+- Added Slovak translation (thanks to Milan Hrala)
+- Included a copy of svdrpservice.h
+- Updated MainMenuHooks patch (thanks to Manuel Reimer)
+- README now mentions the new VDR default port and the possibility to pass
+  server IP and port as parameter to svdrpservice.
+- Updated SVDRP port. Default is now 0 (i.e. use svdrpservice).
+
 2011-09-20: Version 0.1.1
+
 - Updated MainMenuHooks patch to v1.0.1
 - SetTitle must not be called with NULL argument (thanks to Manfred Heindl)
 
 2009-10-07: Version 0.1.0
+
 - if available, use svdrposd-plugin instead of svdrpext-plugin
 - added gettext support (thanks to Diego Pierotto)
   Credits to Udo Richter for his po218n.pl backward compatibility script
@@ -15,6 +30,7 @@ VDR Plugin 'remoteosd' Revision History
 - fixed not parsing replace mainmenu settings
 
 2007-03-07: Version 0.0.2
+
 - New option: tune channel on server
 - Support for MainMenuHooks patch. Plugin may replace the VDR mainmenus
   Schedule and Timers

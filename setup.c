@@ -8,7 +8,7 @@
 
 #include <vdr/menuitems.h>
 #include <vdr/skins.h>
-#include "i18n.h"
+#include <vdr/i18n.h>
 #include "setup.h"
 
 cRemoteOsdSetup RemoteOsdSetup;
@@ -18,7 +18,7 @@ cRemoteOsdSetup::cRemoteOsdSetup() {
 	replaceSchedule = 0;
 	replaceTimers = 0;
 	serverIp[0] = 0;
-	serverPort = 2001;
+	serverPort = 0;
 	tuneServer = 0;
 	maxItems = 0;
 	remoteTheme[0] = 0;
@@ -73,7 +73,7 @@ cRemoteOsdMenuSetup::cRemoteOsdMenuSetup() {
 	Add(new cMenuEditBoolItem(tr("Replace mainmenu \"Timers\""), &setupTmp.replaceTimers));
 #endif
 	Add(new cMenuEditStrItem(tr("Server IP"), setupTmp.serverIp, 15, ".1234567890"));
-	Add(new cMenuEditIntItem(tr("Server port"), &setupTmp.serverPort, 0, 65535));
+	Add(new cMenuEditIntItem(tr("Server port"), &setupTmp.serverPort, 0, 65535, tr("from svdrpservice")));
 	Add(new cMenuEditBoolItem(tr("Tune server channel"), &setupTmp.tuneServer));
 	Add(new cMenuEditIntItem(tr("Number of lines per page"), &setupTmp.maxItems, 0));
 	Add(new cMenuEditStraItem(tr("Remote menu theme"), &themeIndex, numThemes + 1, themeList));

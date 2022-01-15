@@ -6,7 +6,7 @@
 #include <vdr/themes.h>
 #include <vdr/interface.h>
 #include <vdr/status.h>
-#include "i18n.h"
+#include <vdr/i18n.h>
 #include "menu.h"
 #include "setup.h"
 
@@ -18,6 +18,7 @@
 #define RC_NA 930
 
 cRemoteOsdMenu::cRemoteOsdMenu(const char *Title): cOsdMenu(Title) {
+	SetMenuCategory(mcPlugin);
 	plugin = cPluginManager::GetPlugin("svdrpservice");
 	isEmpty = true;
 	plugOsd = true;

@@ -11,7 +11,7 @@
 #include <vdr/osdbase.h>
 #include <vdr/plugin.h>
 #include <vdr/channels.h>
-#include "../svdrpservice/svdrpservice.h"
+#include "svdrpservice.h"
 
 class cRemoteOsdMenu: public cOsdMenu {
 	private:
