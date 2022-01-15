@@ -1,6 +1,10 @@
 VDR Plugin 'remoteosd' Revision History
 ---------------------------------------
 
+2011-09-20: Version 0.1.1
+- Updated MainMenuHooks patch to v1.0.1
+- SetTitle must not be called with NULL argument (thanks to Manfred Heindl)
+
 2009-10-07: Version 0.1.0
 - if available, use svdrposd-plugin instead of svdrpext-plugin
 - added gettext support (thanks to Diego Pierotto)

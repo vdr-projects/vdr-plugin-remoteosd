@@ -176,7 +176,7 @@ bool cRemoteOsdMenu::CmdLSTO() {
 					}
 				}
 			}
-			SetTitle(title);
+			SetTitle(*title ? title : svdrp.serverIp);
 			SetCols(cols[0], cols[1], cols[2], cols[3], cols[4]);
 			SetHelp(red, green, yellow, blue);
 			SetStatus(message);
