@@ -10,13 +10,13 @@
 #include <vdr/tools.h>
 #include <vdr/osdbase.h>
 #include <vdr/plugin.h>
+#include <vdr/channels.h>
 #include "../svdrpservice/svdrpservice.h"
 
 class cRemoteOsdMenu: public cOsdMenu {
 	private:
 		cPlugin			*plugin;
 		SvdrpConnection_v1_0	svdrp;
-		char			*prefix;
 		char			*title;
 		char			*message;
 		char			*red;
@@ -26,6 +26,7 @@ class cRemoteOsdMenu: public cOsdMenu {
 		char			*text;
 		bool			isEmpty;
 
+		bool CmdCHAN(cChannel *Channel);
 		bool CmdHITK(const char *Key);
 		bool CmdOSDT();
 		bool CmdOSDI();

@@ -17,7 +17,6 @@
 
 cRemoteOsdMenu::cRemoteOsdMenu(const char *Title): cOsdMenu(Title) {
 	plugin = cPluginManager::GetPlugin("svdrpservice");
-	prefix = strdup(Title);
 	title = message = text = NULL;
 	red = green = yellow = blue = NULL;
 	isEmpty = true;
@@ -27,9 +26,12 @@ cRemoteOsdMenu::cRemoteOsdMenu(const char *Title): cOsdMenu(Title) {
 
 cRemoteOsdMenu::~cRemoteOsdMenu() {
 	if (plugin && svdrp.handle >= 0) {
+		// probably MENU key has been hit - close remote menu
+		if (!isEmpty)
+			CmdHITK("MENU");
+		// close SVDRP connection
 		plugin->Service("SvdrpConnection-v1.0", &svdrp);
 	}
-	free(prefix);
 	free(title);
 	free(message);
 	free(text);
@@ -46,7 +48,7 @@ bool cRemoteOsdMenu::Open(const char *ServerIp, unsigned short ServerPort, const
 		return false;
 
 	// Get the connection
-	svdrp.serverIp = cString(ServerIp);
+	svdrp.serverIp = ServerIp;
 	svdrp.serverPort = ServerPort;
 	svdrp.shared = true;
 	svdrp.handle = -1;
@@ -69,6 +71,11 @@ bool cRemoteOsdMenu::Open(const char *ServerIp, unsigned short ServerPort, const
 			return false;
 	}
 
+	if (RemoteOsdSetup.tuneServer) {
+		cChannel *channel = Channels.GetByNumber(cDevice::CurrentChannel());
+		CmdCHAN(channel);
+	}
+
 	// Now open the remote menu
 	if (CmdHITK(Key) && CheckState() == RC_OK)
 		return UpdateMenu();
@@ -82,6 +89,14 @@ int cRemoteOsdMenu::CheckState() {
 	cmd.handle = svdrp.handle;
 	plugin->Service("SvdrpCommand-v1.0", &cmd);
 	return cmd.responseCode;
+}
+
+bool cRemoteOsdMenu::CmdCHAN(cChannel *Channel) {
+	SvdrpCommand_v1_0 cmd;
+	cmd.command = cString::sprintf("CHAN %s\r\n", *Channel->GetChannelID().ToString());
+	cmd.handle = svdrp.handle;
+	plugin->Service("SvdrpCommand-v1.0", &cmd);
+	return cmd.responseCode == 250;
 }
 
 bool cRemoteOsdMenu::CmdHITK(const char* Key) {
@@ -109,11 +124,11 @@ bool cRemoteOsdMenu::CmdOSDT() {
 	switch (cmd.responseCode) {
 		case RC_OK:
 			line = cmd.reply.First();
-			asprintf(&title, "%s: %s", prefix, line->Text());
+			asprintf(&title, "%s: %s", *svdrp.serverIp, line->Text());
 			isEmpty = false;
 			break;
 		case RC_NA:
-			title = strdup(prefix);
+			title = strdup(svdrp.serverIp);
 			break;
 		default:
 			return false;
@@ -140,7 +155,7 @@ bool cRemoteOsdMenu::CmdOSDI() {
 	switch (cmd.responseCode) {
 		case RC_OK:
 			for (cLine *line = cmd.reply.First(); line; line = cmd.reply.Next(line)) {
-				char *s = strdup(line->Text());
+				const char *s = line->Text();
 				if (strlen(s) > 2) {
 					switch (*s) {
 						case 'C': if (currentCol < cSkinDisplayMenu::MaxTabs)
@@ -150,7 +165,6 @@ bool cRemoteOsdMenu::CmdOSDI() {
 						case 'S': Add(new cOsdItem(s + 2), true); break;
 					}
 				}
-				free(s);
 			}
 			SetCols(cols[0], cols[1], cols[2], cols[3], cols[4]);
 			break;
@@ -204,7 +218,7 @@ bool cRemoteOsdMenu::CmdOSDM() {
 	switch (cmd.responseCode) {
 		case RC_OK:
 			line = cmd.reply.First();
-			asprintf(&message, "%s: %s", prefix, line->Text());
+			asprintf(&message, "%s: %s", *svdrp.serverIp, line->Text());
 			break;
 		case RC_NA:
 			break;

@@ -38,6 +38,12 @@ If you didn't do that already (otherwise svdrpservice.h is missing):
 - tar xzf vdr-svdrpservice-<VERSION>.tgz
 - ln -sf svdrpservice-<VERSION> svdrpservice
 
+If you want to replace the VDR mainmenus "Schedule" or "Timers" by
+the respective remote menus, you must apply the MainMenuHooks patch
+to VDR before compiling remoteosd. The MainMenuHooks patch is included
+in the patches directory of the remoteosd sources. See the patch file
+for more information and instructions.
+
 Now compile and install remoteosd (and svdrpservice) as usual and add
 both plugins to the script starting your VDR (e.g. runvdr). No options
 required, so simply append:
@@ -61,26 +67,55 @@ the SVDRP connection will be refused.
 Configuration:
 --------------
 Before you can connect you have to configure the IP address of the
-remote VDR. So you have to enter the plugin's setup menu first. It
-offers the following options:
+remote VDR, unless your svdrpservice plugin has been told about a
+default IP.
 
-- Hide mainmenu entry: Keeps your girl friend off the server menu
-- Server IP: Guess what ;-)
-- Server port: SVDRP port on server (usually 2001)
-- Number of lines per page: This parameter controls how a long list of
-items is split into pages. The special value 0 uses the client's idea
-of the OSD size. However the server OSD size determines how many items
-you skip when hitting a "Page Up/Down" key. You might want to adjust
-the number of lines if client and server have different OSD sizes. If
-the client can display more items than the server, you should enter the
-server's size. If however the server can show more items, you should
-consider to reduce its OSD size in the Setup -> OSD menu.
-- Remote menu theme: Some skins support themes. If you want to avoid
-ambiguities, remoteosd can use a different theme while you're in the
-remote menu. As the new theme is loaded while the OSD menu is open,
-not all colors of the new theme might show up. It depends on the way
-the actual skin implements themes. The ST:TNG theme for example will not
-change the color of the frame.
+The remoteosd setup menu offers the following options:
+
+- Hide mainmenu entry
+Keeps your girl friend off the server menu ;-)
+
+- Replace mainmenu "Schedule"
+When enabled, each call to the local VDR Schedule menu will give you
+the remote Schedule menu instead. Only available if MainMenuHooks patch
+has been applied to VDR before compiling remoteosd.
+
+- Replace mainmenu "Timers"
+Dito for Timers menu.
+
+- Server IP
+IP address of SVDRP server. Leave empty or enter 0.0.0.0 if you want to
+use the default IP configured in the svdrpservice plugin.
+
+- Server port
+SVDRP port on server (usually 2001). Enter 0 if you want to use the
+default port from svdrpservice.
+
+- Tune server channel
+Tries to tune the server to the same channel the client is currently
+viewing. So when entering e.g. the remote schedules menu, the expected
+channel will be highlighted. Usually this option makes sense only if
+you are running a headless server. In this case I recommend to install
+the dummydevice plugin on the server. Otherwise the server might not
+be able to switch channels as expected.
+
+- Number of lines per page
+This parameter controls how a long list of items is split into pages.
+The special value 0 uses the client's idea of the OSD size. However the
+server OSD size determines how many items you skip when hitting a "Page
+Up/Down" key. You might want to adjust the number of lines if client
+and server have different OSD sizes. If the client can display more
+items than the server, you should enter the server's size. If however
+the server can show more items, you should consider to reduce its OSD
+size in menu Setup -> OSD.
+
+- Remote menu theme
+Some skins support themes. If you want to avoid ambiguities, remoteosd
+can use a different theme while you're in the remote menu. As the new
+theme is loaded while the OSD menu is open, not all colors of the new
+theme might show up. It depends on the way the actual skin implements
+themes. The ST:TNG theme for example will not change the color of the
+frame.
 
 It's not a bug... 
 -----------------

@@ -15,7 +15,7 @@
 #include "menu.h"
 #include "setup.h"
 
-static const char *VERSION        = "0.0.1";
+static const char *VERSION        = "0.0.2";
 static const char *DESCRIPTION    = "Show menu of a remote VDR";
 static const char *MAINMENUENTRY  = "Remote menu";
 
@@ -91,9 +91,10 @@ void cPluginRemoteOsd::Housekeeping(void)
 
 cOsdObject *cPluginRemoteOsd::MainMenuAction(void)
 {
-  cRemoteOsdMenu *menu = new cRemoteOsdMenu(RemoteOsdSetup.serverIp);
+  cRemoteOsdMenu *menu = new cRemoteOsdMenu(tr(MAINMENUENTRY));
   if (!menu->Open(RemoteOsdSetup.serverIp, (unsigned short) RemoteOsdSetup.serverPort, "MENU")) {
 	  DELETENULL(menu);
+	  Skins.Message(mtError, tr("Remote menu not available. Connection failed."));
   }
   return menu;
 }
@@ -111,6 +112,8 @@ bool cPluginRemoteOsd::SetupParse(const char *Name, const char *Value)
 	  strn0cpy(RemoteOsdSetup.serverIp, Value, sizeof(RemoteOsdSetup.serverIp));
   else if (!strcasecmp(Name, "ServerPort"))
 	  RemoteOsdSetup.serverPort = atoi(Value);
+  else if (!strcasecmp(Name, "TuneServer"))
+	  RemoteOsdSetup.tuneServer = atoi(Value);
   else if (!strcasecmp(Name, "MaxItems"))
 	  RemoteOsdSetup.maxItems = atoi(Value);
   else if (!strcasecmp(Name, "RemoteTheme"))
@@ -123,6 +126,27 @@ bool cPluginRemoteOsd::SetupParse(const char *Name, const char *Value)
 bool cPluginRemoteOsd::Service(const char *Id, void *Data)
 {
   // Handle custom service requests from other plugins
+  cRemoteOsdMenu **menu = (cRemoteOsdMenu**) Data;
+  if (RemoteOsdSetup.replaceSchedule && strcmp(Id, "MainMenuHooksPatch-v1.0::osSchedule") == 0) {
+	  if (menu) {
+		  *menu = new cRemoteOsdMenu(RemoteOsdSetup.serverIp);
+		  if (!(*menu)->Open(RemoteOsdSetup.serverIp, (unsigned short) RemoteOsdSetup.serverPort, "SCHEDULE")) {
+			  DELETENULL(*menu);
+			  Skins.Message(mtError, tr("Remote menu not available. Connection failed."));
+		  }
+	  }
+	  return true;
+  }
+  if (RemoteOsdSetup.replaceTimers && strcmp(Id, "MainMenuHooksPatch-v1.0::osTimers") == 0) {
+	  if (menu) {
+		  *menu = new cRemoteOsdMenu(RemoteOsdSetup.serverIp);
+		  if (!(*menu)->Open(RemoteOsdSetup.serverIp, (unsigned short) RemoteOsdSetup.serverPort, "TIMERS")) {
+			  DELETENULL(*menu);
+			  Skins.Message(mtError, tr("Remote menu not available. Connection failed."));
+		  }
+	  }
+	  return true;
+  }
   return false;
 }
 

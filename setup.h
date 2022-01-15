@@ -14,8 +14,11 @@
 
 struct cRemoteOsdSetup {
 	int hideMainMenuEntry;
+	int replaceSchedule;
+	int replaceTimers;
 	char serverIp[MAX_IP_LENGTH];
 	int serverPort;
+	int tuneServer;
 	int maxItems;
 	char remoteTheme[MaxThemeName];
 
