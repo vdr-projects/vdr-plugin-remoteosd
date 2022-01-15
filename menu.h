@@ -17,17 +17,19 @@ class cRemoteOsdMenu: public cOsdMenu {
 	private:
 		cPlugin			*plugin;
 		SvdrpConnection_v1_0	svdrp;
-		char			*title;
-		char			*message;
-		char			*red;
-		char			*green;
-		char			*yellow;
-		char			*blue;
-		char			*text;
+		cString			title;
+		cString			message;
+		cString			red;
+		cString			green;
+		cString			yellow;
+		cString			blue;
+		cString			text;
 		bool			isEmpty;
+		bool			plugOsd;
 
 		bool CmdCHAN(cChannel *Channel);
 		bool CmdHITK(const char *Key);
+		bool CmdLSTO();
 		bool CmdOSDT();
 		bool CmdOSDI();
 		bool CmdOSDH();

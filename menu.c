@@ -10,16 +10,17 @@
 #include "menu.h"
 #include "setup.h"
 
+#define PLUG_EXT "PLUG svdrpext "
+#define PLUG_OSD "PLUG svdrposd "
+
 #define SVDRP_SERVER_TIMEOUT_MS 10
-#define CMD_PLUG "PLUG svdrpext "
 #define RC_OK 920
 #define RC_NA 930
 
 cRemoteOsdMenu::cRemoteOsdMenu(const char *Title): cOsdMenu(Title) {
 	plugin = cPluginManager::GetPlugin("svdrpservice");
-	title = message = text = NULL;
-	red = green = yellow = blue = NULL;
 	isEmpty = true;
+	plugOsd = true;
 	if (*RemoteOsdSetup.remoteTheme)
 		cThemes::Load(Skins.Current()->Name(), RemoteOsdSetup.remoteTheme, Skins.Current()->Theme());
 }
@@ -32,20 +33,15 @@ cRemoteOsdMenu::~cRemoteOsdMenu() {
 		// close SVDRP connection
 		plugin->Service("SvdrpConnection-v1.0", &svdrp);
 	}
-	free(title);
-	free(message);
-	free(text);
-	free(red);
-	free(green);
-	free(yellow);
-	free(blue);
 	if (*RemoteOsdSetup.remoteTheme)
 		cThemes::Load(Skins.Current()->Name(), Setup.OSDTheme, Skins.Current()->Theme());
 }
 
 bool cRemoteOsdMenu::Open(const char *ServerIp, unsigned short ServerPort, const char *Key) {
-	if (!plugin)
+	if (!plugin) {
+		esyslog("remoteosd: svdrpservice-plugin required but not available");
 		return false;
+	}
 
 	// Get the connection
 	svdrp.serverIp = ServerIp;
@@ -64,7 +60,7 @@ bool cRemoteOsdMenu::Open(const char *ServerIp, unsigned short ServerPort, const
 		if (i == 1 && !Interface->Confirm(tr("Remote OSD already in use. Proceed anyway?")))
 			return false;
 		else if (i > 2) {
-			esyslog("RemoteOsdMenu: Cannot close remote menu");
+			esyslog("remoteosd: Cannot close remote menu");
 			return false;
 		}
 		if (!CmdHITK("MENU"))
@@ -85,9 +81,19 @@ bool cRemoteOsdMenu::Open(const char *ServerIp, unsigned short ServerPort, const
 int cRemoteOsdMenu::CheckState() {
 	SvdrpCommand_v1_0 cmd;
 	// assume the OSD is empty if there is no title
-	cmd.command = cString(CMD_PLUG "OSDT\r\n");
+	cmd.command = cString(plugOsd ? PLUG_OSD "OSDT\r\n" : PLUG_EXT "OSDT\r\n");
 	cmd.handle = svdrp.handle;
 	plugin->Service("SvdrpCommand-v1.0", &cmd);
+	if (cmd.responseCode == 550) {
+		if (plugOsd) {
+			// no svdrposd-plugin - fallback to svdrpext-plugin
+			plugOsd = false;
+			return CheckState();
+		}
+		else {
+			esyslog("remoteosd: svdrposd-plugin not installed on %s", *svdrp.serverIp);
+		}
+	}
 	return cmd.responseCode;
 }
 
@@ -113,22 +119,92 @@ bool cRemoteOsdMenu::CmdHITK(const char* Key) {
 	return cmd.responseCode == 250;
 }
 
+bool cRemoteOsdMenu::CmdLSTO() {
+	int maxItems = RemoteOsdSetup.maxItems;
+	// special value 0: use local maxItems
+	if (maxItems == 0)
+		maxItems = DisplayMenu()->MaxItems();
+
+	SvdrpCommand_v1_0 cmd;
+	cmd.command = cString::sprintf(PLUG_OSD "LSTO %d\r\n", maxItems);
+	cmd.handle = svdrp.handle;
+	plugin->Service("SvdrpCommand-v1.0", &cmd);
+
+	int cols[cSkinDisplayMenu::MaxTabs];
+	int currentCol = 0;
+	memset(&cols, 0, sizeof(cols));
+
+	switch (cmd.responseCode) {
+		case RC_OK:
+			for (cLine *line = cmd.reply.First(); line; line = cmd.reply.Next(line)) {
+				const char *s = line->Text();
+				if (strlen(s) > 2) {
+					switch (*s) {
+						case 'T':
+							title = cString::sprintf("%s: %s", *svdrp.serverIp, s + 2);
+							isEmpty = false;
+							break;
+						case 'C':
+							if (currentCol < cSkinDisplayMenu::MaxTabs)
+								cols[currentCol++] = strtol(s + 2, NULL, 10);
+							break;
+						case 'I':
+							Add(new cOsdItem(s + 2));
+							isEmpty = false;
+							break;
+						case 'S':
+							Add(new cOsdItem(s + 2), true);
+							isEmpty = false;
+							break;
+						case 'R': red    = s + 2; break;
+						case 'G': green  = s + 2; break;
+						case 'Y': yellow = s + 2; break;
+						case 'B': blue   = s + 2; break;
+						case 'M':
+							message = cString::sprintf("%s: %s", *svdrp.serverIp, s + 2);
+							break;
+						case 'X': {
+							char* t = strdup(s + 2);
+							strreplace(t, '|', '\n');
+							text = cString(t, true);
+							isEmpty = false;
+							}
+							break;
+						default:
+							esyslog("remoteosd: unexpected reply type '%c'", *s);
+							break;
+					}
+				}
+			}
+			SetTitle(title);
+			SetCols(cols[0], cols[1], cols[2], cols[3], cols[4]);
+			SetHelp(red, green, yellow, blue);
+			SetStatus(message);
+			break;
+		case RC_NA:
+			break;
+		default:
+			return false;
+	}
+	return true;
+}
+
 bool cRemoteOsdMenu::CmdOSDT() {
 	SvdrpCommand_v1_0 cmd;
 	cLine *line;
 
-	cmd.command = cString(CMD_PLUG "OSDT\r\n");
+	cmd.command = cString(plugOsd ? PLUG_OSD "OSDT\r\n" : PLUG_EXT "OSDT\r\n");
 	cmd.handle = svdrp.handle;
 	plugin->Service("SvdrpCommand-v1.0", &cmd);
 
 	switch (cmd.responseCode) {
 		case RC_OK:
 			line = cmd.reply.First();
-			asprintf(&title, "%s: %s", *svdrp.serverIp, line->Text());
+			title = cString::sprintf("%s: %s", *svdrp.serverIp, line->Text());
 			isEmpty = false;
 			break;
 		case RC_NA:
-			title = strdup(svdrp.serverIp);
+			title = svdrp.serverIp;
 			break;
 		default:
 			return false;
@@ -144,7 +220,7 @@ bool cRemoteOsdMenu::CmdOSDI() {
 		maxItems = DisplayMenu()->MaxItems();
 
 	SvdrpCommand_v1_0 cmd;
-	cmd.command = cString::sprintf(CMD_PLUG "OSDI %d\r\n", maxItems);
+	cmd.command = cString::sprintf(PLUG_EXT "OSDI %d\r\n", maxItems);
 	cmd.handle = svdrp.handle;
 	plugin->Service("SvdrpCommand-v1.0", &cmd);
 
@@ -167,6 +243,7 @@ bool cRemoteOsdMenu::CmdOSDI() {
 				}
 			}
 			SetCols(cols[0], cols[1], cols[2], cols[3], cols[4]);
+			isEmpty = false;
 			break;
 		case RC_NA:
 			break;
@@ -179,7 +256,7 @@ bool cRemoteOsdMenu::CmdOSDI() {
 bool cRemoteOsdMenu::CmdOSDH() {
 	SvdrpCommand_v1_0 cmd;
 
-	cmd.command = cString(CMD_PLUG "OSDH\r\n");
+	cmd.command = cString(PLUG_EXT "OSDH\r\n");
 	cmd.handle = svdrp.handle;
 	plugin->Service("SvdrpCommand-v1.0", &cmd);
 
@@ -188,15 +265,15 @@ bool cRemoteOsdMenu::CmdOSDH() {
 			for (cLine *line = cmd.reply.First(); line; line = cmd.reply.Next(line)) {
 				const char *s = line->Text();
 				if (strlen(s) > 2) {
-					char *text = strdup(s + 2);
 					switch (*s) {
-						case 'R': red = text; break;
-						case 'G': green = text; break;
-						case 'Y': yellow = text; break;
-						case 'B': blue = text; break;
+						case 'R': red = s + 2; break;
+						case 'G': green = s + 2; break;
+						case 'Y': yellow = s + 2; break;
+						case 'B': blue = s + 2; break;
 					}
 				}
 			}
+			isEmpty = false;
 			break;
 		case RC_NA:
 			break;
@@ -211,14 +288,14 @@ bool cRemoteOsdMenu::CmdOSDM() {
 	SvdrpCommand_v1_0 cmd;
 	cLine *line;
 
-	cmd.command = cString(CMD_PLUG "OSDM\r\n");
+	cmd.command = cString(PLUG_EXT "OSDM\r\n");
 	cmd.handle = svdrp.handle;
 	plugin->Service("SvdrpCommand-v1.0", &cmd);
 
 	switch (cmd.responseCode) {
 		case RC_OK:
 			line = cmd.reply.First();
-			asprintf(&message, "%s: %s", *svdrp.serverIp, line->Text());
+			message = cString::sprintf("%s: %s", *svdrp.serverIp, line->Text());
 			break;
 		case RC_NA:
 			break;
@@ -233,15 +310,18 @@ bool cRemoteOsdMenu::CmdOSDX() {
 	SvdrpCommand_v1_0 cmd;
 	cLine *line;
 
-	cmd.command = cString(CMD_PLUG "OSDX\r\n");
+	cmd.command = cString(PLUG_EXT "OSDX\r\n");
 	cmd.handle = svdrp.handle;
 	plugin->Service("SvdrpCommand-v1.0", &cmd);
 
 	switch (cmd.responseCode) {
-		case RC_OK:
+		case RC_OK: {
 			line = cmd.reply.First();
-			text = strdup(line->Text());
-			strreplace(text, '|', '\n');
+			char* t = strdup(line->Text());
+			strreplace(t, '|', '\n');
+			text = cString(t, true);
+			isEmpty = false;
+			}
 			break;
 		case RC_NA:
 			break;
@@ -254,11 +334,17 @@ bool cRemoteOsdMenu::CmdOSDX() {
 bool cRemoteOsdMenu::UpdateMenu() {
 	Clear();
 
-	if (!CmdOSDT() || !CmdOSDM() || !CmdOSDH() || !CmdOSDI())
-		return false;
-	// Check for text only if no item is shown
-	if (Count() == 0 && !CmdOSDX())
-		return false;
+	if (plugOsd) {
+		if (!CmdLSTO())
+			return false;
+	}
+	else {
+		if (!CmdOSDT() || !CmdOSDM() || !CmdOSDH() || !CmdOSDI())
+			return false;
+		// Check for text only if no item is shown
+		if (Count() == 0 && !CmdOSDX())
+			return false;
+	}
 
 	Display();
 	return true;
@@ -266,22 +352,20 @@ bool cRemoteOsdMenu::UpdateMenu() {
 
 void cRemoteOsdMenu::Clear() {
 	cOsdMenu::Clear();
-	free(title);
-	free(message);
-	free(text);
-	free(red);
-	free(green);
-	free(yellow);
-	free(blue);
-	title = message = text = NULL;
-	red = green = yellow = blue = NULL;
+	title = NULL;
+	message = NULL;
+	text = NULL;
+	red = NULL;
+	green = NULL;
+	yellow = NULL;
+	blue = NULL;
 	isEmpty = true;
 }
 
 void cRemoteOsdMenu::Display(void)
 {
 	cOsdMenu::Display();
-	if (text) {
+	if (*text) {
 		DisplayMenu()->SetText(text, true);
 		cStatus::MsgOsdTextItem(text);
 	}
@@ -294,7 +378,7 @@ eOSState cRemoteOsdMenu::ProcessKey(eKeys Key) {
 	if (Key & k_Release)
 		return osContinue;
 
-	if (text) {
+	if (*text) {
 		switch (Key) {
 			case kUp|k_Repeat:
 			case kUp:

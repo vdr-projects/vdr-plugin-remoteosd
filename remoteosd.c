@@ -15,9 +15,9 @@
 #include "menu.h"
 #include "setup.h"
 
-static const char *VERSION        = "0.0.2";
-static const char *DESCRIPTION    = "Show menu of a remote VDR";
-static const char *MAINMENUENTRY  = "Remote menu";
+static const char *VERSION        = "0.1.0";
+static const char *DESCRIPTION    = trNOOP("Show menu of a remote VDR");
+static const char *MAINMENUENTRY  = trNOOP("Remote menu");
 
 class cPluginRemoteOsd : public cPlugin {
 private:
@@ -75,7 +75,9 @@ bool cPluginRemoteOsd::Initialize(void)
 bool cPluginRemoteOsd::Start(void)
 {
   // Start any background activities the plugin shall perform.
+#if VDRVERSNUM < 10507
   RegisterI18n(Phrases);
+#endif
   return true;
 }
 
@@ -108,6 +110,10 @@ bool cPluginRemoteOsd::SetupParse(const char *Name, const char *Value)
 {
   if (!strcasecmp(Name, "HideMainMenuEntry"))
 	  RemoteOsdSetup.hideMainMenuEntry = atoi(Value);
+  else if (!strcasecmp(Name, "ReplaceSchedule"))
+	  RemoteOsdSetup.replaceSchedule = atoi(Value);
+  else if (!strcasecmp(Name, "ReplaceTimers"))
+	  RemoteOsdSetup.replaceTimers = atoi(Value);
   else if (!strcasecmp(Name, "ServerIp"))
 	  strn0cpy(RemoteOsdSetup.serverIp, Value, sizeof(RemoteOsdSetup.serverIp));
   else if (!strcasecmp(Name, "ServerPort"))

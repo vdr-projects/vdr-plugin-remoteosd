@@ -1,9 +1,19 @@
 VDR Plugin 'remoteosd' Revision History
 ---------------------------------------
 
+2009-10-07: Version 0.1.0
+- if available, use svdrposd-plugin instead of svdrpext-plugin
+- added gettext support (thanks to Diego Pierotto)
+  Credits to Udo Richter for his po218n.pl backward compatibility script
+- added Italian translation (thanks to Diego Pierotto)
+- log error if svdrpservice or svdrpext/svdrposd are not installed
+- replaced all occurences of asprintf
+- fixed not parsing replace mainmenu settings
+
 2007-03-07: Version 0.0.2
 - New option: tune channel on server
-- Support for MainMenuHooks patch. Plugin may replace the VDR mainmenus Schedule and Timers
+- Support for MainMenuHooks patch. Plugin may replace the VDR mainmenus
+  Schedule and Timers
 - Close remote menu when the local menu has been closed by menu key
 - OSD message if server is not reachable
 - Support for svdrpservice-0.0.3 default IP/port

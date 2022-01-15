@@ -1,0 +1,51 @@
+# VDR plugin language source file.
+# Copyright (C) 2007 Klaus Schmidinger <kls@cadsoft.de>
+# This file is distributed under the same license as the VDR package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: VDR 1.5.7\n"
+"Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
+"POT-Creation-Date: 2009-10-02 23:48+0200\n"
+"PO-Revision-Date: 2009-08-25 01:00+0100\n"
+"Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
+"Language-Team:  <vdr@linuxtv.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-15\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Remote OSD already in use. Proceed anyway?"
+msgstr "OSD remoto già in esecuzione. Continuare?"
+
+msgid "Show menu of a remote VDR"
+msgstr "Mostra menu VDR remoto"
+
+msgid "Remote menu"
+msgstr "Menu remoto"
+
+msgid "Remote menu not available. Connection failed."
+msgstr "Menu remoto non disponibile. Connessione fallita."
+
+msgid "Hide mainmenu entry"
+msgstr "Nascondi voce menu principale"
+
+msgid "Replace mainmenu \"Schedule\""
+msgstr "Sostituisci \"Programmi\" nel menu principale"
+
+msgid "Replace mainmenu \"Timers\""
+msgstr "Sostituisci \"Timer\" nel menu principale"
+
+msgid "Server IP"
+msgstr "IP server"
+
+msgid "Server port"
+msgstr "Porta server"
+
+msgid "Tune server channel"
+msgstr "Sintonizza canale server"
+
+msgid "Number of lines per page"
+msgstr "Numero di righe per pagina"
+
+msgid "Remote menu theme"
+msgstr "Tema menu remoto"

@@ -18,14 +18,9 @@ Local (client) VDR:
 - plugin remoteosd
 - plugin svdrpservice
 Remote (server) VDR:
-- plugin svdrpext
+- plugin svdrposd (formerly svdrpext, which is also supported)
 
 All three plugins are available at http://vdr.schmirler.de
-
-The plugins should also work with VDR 1.3 if you have at least 1.3.30.
-To get them compiled for 1.3 you have to replace APIVERSION by
-VDRVERSION in the Makefiles. Up to 1.3.44 you might also need to patch
-the svdrpext plugin (check its README for details).
 
 Installation on client VDR:
 ---------------------------
@@ -54,12 +49,12 @@ Installation on server VDR:
 ---------------------------
 Just about the same:
 - cd VDR/PLUGINS/src
-- tar xzf vdr-svdrpext-<VERSION>.tgz
-- ln -sf svdrpext-<VERSION> svdrpext
+- tar xzf vdr-svdrposd-<VERSION>.tgz
+- ln -sf svdrposd-<VERSION> svdrposd
 
 Compile, install and add the following parameter to the startup script:
 
-  -Psvdrpext
+  -Psvdrposd
 
 Check your svdrphosts.conf file: The clients must be listed or otherwise
 the SVDRP connection will be refused.
