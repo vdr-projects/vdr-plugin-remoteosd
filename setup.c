@@ -72,7 +72,7 @@ cRemoteOsdMenuSetup::cRemoteOsdMenuSetup() {
 	Add(new cMenuEditBoolItem(tr("Replace mainmenu \"Schedule\""), &setupTmp.replaceSchedule));
 	Add(new cMenuEditBoolItem(tr("Replace mainmenu \"Timers\""), &setupTmp.replaceTimers));
 #endif
-	Add(new cMenuEditStrItem(tr("Server IP"), setupTmp.serverIp, 15, ".1234567890"));
+	Add(new cMenuEditStrItem(tr("Server IP"), setupTmp.serverIp, sizeof(setupTmp.serverIp), ".1234567890"));
 	Add(new cMenuEditIntItem(tr("Server port"), &setupTmp.serverPort, 0, 65535, tr("from svdrpservice")));
 	Add(new cMenuEditBoolItem(tr("Tune server channel"), &setupTmp.tuneServer));
 	Add(new cMenuEditIntItem(tr("Number of lines per page"), &setupTmp.maxItems, 0));
