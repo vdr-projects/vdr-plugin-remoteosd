@@ -69,7 +69,12 @@ bool cRemoteOsdMenu::Open(const char *ServerIp, unsigned short ServerPort, const
 	}
 
 	if (RemoteOsdSetup.tuneServer) {
+#if VDRVERSNUM >= 20301
+		LOCK_CHANNELS_READ;
+		const cChannel *channel = Channels->GetByNumber(cDevice::CurrentChannel());
+#else
 		cChannel *channel = Channels.GetByNumber(cDevice::CurrentChannel());
+#endif
 		CmdCHAN(channel);
 	}
 
@@ -98,7 +103,7 @@ int cRemoteOsdMenu::CheckState() {
 	return cmd.responseCode;
 }
 
-bool cRemoteOsdMenu::CmdCHAN(cChannel *Channel) {
+bool cRemoteOsdMenu::CmdCHAN(const cChannel *Channel) {
 	SvdrpCommand_v1_0 cmd;
 	cmd.command = cString::sprintf("CHAN %s\r\n", *Channel->GetChannelID().ToString());
 	cmd.handle = svdrp.handle;

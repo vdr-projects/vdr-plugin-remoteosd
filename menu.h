@@ -27,7 +27,7 @@ class cRemoteOsdMenu: public cOsdMenu {
 		bool			isEmpty;
 		bool			plugOsd;
 
-		bool CmdCHAN(cChannel *Channel);
+		bool CmdCHAN(const cChannel *Channel);
 		bool CmdHITK(const char *Key);
 		bool CmdLSTO();
 		bool CmdOSDT();
