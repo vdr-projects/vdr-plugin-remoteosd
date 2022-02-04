@@ -1,6 +1,11 @@
 VDR Plugin 'remoteosd' Revision History
 ---------------------------------------
 
+2022-02-04: Version 1.0.1
+
+- Fix Length parameter for server IP setup entry (thanks to yaVDR team)
+- Add support for VDR >= 2.3.1 (thanks to MatthiasK@VDR-Portal)
+
 2013-06-07: Version 1.0.0
 
 - Added service call to open remote menu

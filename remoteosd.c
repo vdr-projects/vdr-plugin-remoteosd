@@ -16,7 +16,7 @@
 #include "menu.h"
 #include "setup.h"
 
-static const char *VERSION        = "1.0.0";
+static const char *VERSION        = "1.0.1";
 static const char *DESCRIPTION    = trNOOP("Show menu of a remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote menu");
 
